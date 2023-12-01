@@ -16,7 +16,7 @@ public class App {
     public static final Scanner scan = new Scanner(System.in);
     public static Connection conn = null;
     public static SuperstoreServices services = null;
-
+    public static String type = null;
     public static void main(String[] args) throws SQLException {
         Console console = System.console() ;
         System.out.println("-Welcome to SuperStore management application- \n Enter your DB username..");
@@ -31,8 +31,17 @@ public class App {
         try {
             services = new SuperstoreServices("jdbc:oracle:thin:", "198.168.52.211", "1521", user, password);
             conn = services.getConnection();
-            mainMenu();
-            conn.close(); // keeps running even with exception?????
+            System.out.println("Are you a customer (c) or manager (m)");
+            type = scan.nextLine();
+            while (!type.equals("c") && !type.equals("m")) {
+                System.out.println("try again");
+                type = scan.nextLine();
+            }
+            if (type.equals("c"))
+                mainMenuCustomer();
+            else if (type.equals("m"))
+                mainMenu();
+            conn.close();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
 
@@ -45,6 +54,88 @@ public class App {
         }
     }
 
+    /************** CUSTOMER MENU OPTIONS ***************/
+
+     /**
+     * this function represents the main menu for CUSTOMERS with MAIN FUNCTIONS
+     */
+    public static void mainMenuCustomer() {
+        int input = 0;
+        System.out.println(
+                "\n ------------------------------------------------------------- \n Here are your options.. choose wisely. ");
+        System.out.println("1. View information about reviews and products");
+        System.out.println("2. Place orders, flag a review, create reviews");
+        System.out.println("3. EXIT \n");
+        System.out.println("Enter the number of the option you would like to select: ");
+        do {
+
+            try {
+                input = Integer.parseInt(scan.nextLine());
+            } catch (NumberFormatException e) {
+                input = 0;
+            }
+            switch (input) {
+                case 1:
+                    System.out.println("\033c");
+                    viewReviewProdMenu();
+                    break;
+                case 2:
+                    System.out.println("\033c");
+                    customerMods();
+                    break;
+                case 3:
+                    System.out.println("Chosen \"EXIT\". System exiting.. Goodbye!!");
+                    System.exit(0);
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+
+        } while (true);
+
+    }
+    
+    /**
+     * The menu of the actions a customer is allowed to take.
+     * Takes in user input to choose option.
+     */
+    public static void customerMods() {
+        int input = 0;
+        System.out.println("\n------------------------------------------------------------- ");
+        System.out.println("1. Place order");
+        System.out.println("2. Create a review");
+        System.out.println("3. Flag a review");
+        System.out.println("4. BACK \n");
+        System.out.println("Enter the number of the option you would like to select: ");
+        do {
+            try {
+                input = Integer.parseInt(scan.nextLine());
+            } catch (NumberFormatException e) {
+                input = 0;
+            }
+            switch (input) {
+                case 1:
+                    System.out.println("\033c");
+                    placeOrder();
+                    break;
+                case 2:
+                    System.out.println("\033c");
+                    createReview();
+                    break;
+                case 3:
+                    System.out.println("\033c");
+                    flagReview();
+                    break;
+                case 4:
+                    System.out.println("\033c");
+                    mainMenuCustomer();
+                    break;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+        } while (true);
+    }
+
+    /**************** MANAGER OPTIONS  ******************/
     /**
      * this function represents the main menu with MAIN FUNCTIONS
      */
@@ -82,7 +173,7 @@ public class App {
                     break;
                 case 5:
                     System.out.println("Chosen \"EXIT\". System exiting.. Goodbye!!");
-                    return;
+                    System.exit(0);
                 default:
                     System.out.println("Invalid option. Please try again.");
             }
@@ -140,8 +231,7 @@ public class App {
             System.out.println("3. View all information about products");
             System.out.println("4. View all information about products in a specific category");
             System.out.println("5. View all information about stores");
-            System.out.println("6. View all information about warehouses");
-            System.out.println("7. BACK \n");
+            System.out.println("6. BACK \n");
             System.out.println("Enter the number of the option you would like to select: ");
             try {
                 input = Integer.parseInt(scan.nextLine());
@@ -171,11 +261,10 @@ public class App {
                     viewAllStoreInfo();
                     break;
                 case 6:
-                    System.out.println("\033c");
-                    viewWarehouseInfo();
-                    break;
-                case 7:
-                    mainMenu();
+                    if (type.equals("c"))
+                        mainMenuCustomer();
+                    else
+                        mainMenu();
                     break;
                 default:
                     System.out.println("Invalid option. Please try again.");
@@ -193,7 +282,8 @@ public class App {
         System.out.println("1. View total inventory of a specific product");
         System.out.println("2. Calculate the number of orders placed on a product");
         System.out.println("3. View all information about orders");
-        System.out.println("4. BACK \n");
+        System.out.println("4. View all information about warehouses");
+        System.out.println("5. BACK \n");
         System.out.println("Enter the number of the option you would like to select: ");
         do {
             try {
@@ -216,6 +306,10 @@ public class App {
                     viewAllOrderInfo();
                     break;
                 case 4:
+                    System.out.println("\033c");
+                    viewWarehouseInfo();
+                    break;
+                case 5:
                     mainMenu();
                     break;
                 default:
@@ -231,7 +325,7 @@ public class App {
     public static void manipulationMenu() {
         int input = 0;
         System.out.println("\n------------------------------------------------------------- ");
-        System.out.println("1. Place an order an order");
+        System.out.println("1. Place an order");
         System.out.println("2. Remove a product");
         System.out.println("3. Log a new delivery into the system");
         System.out.println("4. Flag a review");
@@ -285,6 +379,8 @@ public class App {
         } while (true);
     }
 
+    /******* HELPERS USED TO TAKE INPUT AND CALL THE FUNCTIONS IN SUPERSTORESERVICES.JAVA HELPER CLASS *********/
+
     /**
      * this function creates an order in the Orders table using user input
      */
@@ -307,7 +403,10 @@ public class App {
                 addOrderItems(orderID);
                 conn.commit();
                 isSuccessful = true;
-                manipulationMenu();
+                if (type.equals("c"))
+                    customerMods();
+                else
+                    manipulationMenu();
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
             } catch (ClassNotFoundException e) {
@@ -338,7 +437,7 @@ public class App {
                 int quantity = Integer.parseInt(scan.nextLine());
                 services.addOrderItem(orderID, productID, quantity);
                 System.out.println("your order item has been added successfully");
-                System.out.println("add another item?");
+                System.out.println("add another item? type 'yes' if so");
                 addMore = scan.nextLine().toLowerCase();
             } catch (NumberFormatException e) {
                 System.out.println("enter an integer please");
@@ -575,7 +674,10 @@ public class App {
                 System.out.println("New order review created!");
                 conn.commit();
                 isSuccessful = true;
-                manipulationMenu();
+                if (type.equals("c"))
+                    customerMods();
+                else
+                    manipulationMenu();
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
             } catch (NumberFormatException e) {
@@ -606,7 +708,10 @@ public class App {
                 System.out.println("Review was successfully flagged. Thank you");
                 conn.commit();
                 isSuccessful = true;
-                manipulationMenu();
+                if (type.equals("c"))
+                    customerMods();
+                else
+                    manipulationMenu();
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
             } catch (NumberFormatException e) {
